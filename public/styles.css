@@ -68,3 +68,13 @@
     height: 340px;
   }
 }
+
+.hero-photo > img {
+  object-position: 8% center;
+}
+
+@media (max-width: 650px) {
+  .hero-photo > img {
+    object-position: 16% center;
+  }
+}
