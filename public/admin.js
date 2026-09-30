@@ -2,15 +2,14 @@
   "use strict";
 
   const $ = (id) => document.getElementById(id);
+  const config = window.EGEC_CONFIG;
 
-  const message = (text, error = false) => {
+  function message(text, error = false) {
     const box = $("status-message");
     box.textContent = text;
     box.classList.toggle("error", error);
     box.hidden = !text;
-  };
-
-  const config = window.EGEC_CONFIG;
+  }
 
   if (
     !window.supabase ||
@@ -37,6 +36,7 @@
   let adminId = null;
   let authVersion = 0;
   let previewUrl = null;
+  let orderBusy = false;
 
   const escapeHtml = (value) =>
     String(value ?? "").replace(/[&<>"']/g, (character) => ({
@@ -54,7 +54,6 @@
 
   function imageUrl(value) {
     const text = String(value ?? "").trim();
-
     if (!text) return "";
 
     if (text.startsWith("/") && !text.startsWith("//")) {
@@ -89,7 +88,6 @@
 
   async function run(button, task) {
     if (button.disabled) return;
-
     button.disabled = true;
 
     try {
@@ -122,7 +120,6 @@
       );
 
       rows.push(...page);
-
       if (page.length < pageSize) return rows;
     }
   }
@@ -146,7 +143,6 @@
     `).join("");
 
     $("product-category").innerHTML = options;
-
     $("product-category-filter").innerHTML =
       '<option value="">All categories</option>' + options;
 
@@ -182,20 +178,28 @@
               </div>
             </div>
           </td>
+
           <td>${escapeHtml(categoryName(product.category_id))}</td>
           <td>${escapeHtml(money(product.price))}</td>
+
           <td>
             ${product.active
               ? badge("Visible")
               : badge("Hidden", "hidden")}
           </td>
+
           <td>
             <div class="row-actions">
               <button type="button" data-action="edit"
-                      data-id="${escapeHtml(product.id)}">Edit</button>
+                      data-id="${escapeHtml(product.id)}">
+                Edit
+              </button>
+
               <button type="button" class="button-danger"
                       data-action="delete"
-                      data-id="${escapeHtml(product.id)}">Delete</button>
+                      data-id="${escapeHtml(product.id)}">
+                Delete
+              </button>
             </div>
           </td>
         </tr>
@@ -210,18 +214,25 @@
       <tr>
         <td><strong>${escapeHtml(category.name)}</strong></td>
         <td>${escapeHtml(category.sort_order)}</td>
+
         <td>
           ${category.active
             ? badge("Visible")
             : badge("Hidden", "hidden")}
         </td>
+
         <td>
           <div class="row-actions">
             <button type="button" data-action="edit"
-                    data-id="${escapeHtml(category.id)}">Edit</button>
+                    data-id="${escapeHtml(category.id)}">
+              Edit
+            </button>
+
             <button type="button" class="button-danger"
                     data-action="delete"
-                    data-id="${escapeHtml(category.id)}">Delete</button>
+                    data-id="${escapeHtml(category.id)}">
+              Delete
+            </button>
           </div>
         </td>
       </tr>
@@ -232,6 +243,7 @@
 
   function renderOrders() {
     const status = $("order-status-filter").value;
+
     const visible = orders.filter((order) =>
       !status || order.status === status
     );
@@ -250,14 +262,31 @@
         <td>${escapeHtml(formatDate(order.created_at))}</td>
         <td>${escapeHtml(order.fulfilment_method)}</td>
         <td>${badge(order.status, order.status)}</td>
+
         <td>
-          <button type="button" data-action="view"
-                  data-id="${escapeHtml(order.id)}">View</button>
+          <div class="row-actions">
+            <button type="button" data-action="view"
+                    data-id="${escapeHtml(order.id)}">
+              View
+            </button>
+
+            <button type="button" class="button-danger"
+                    data-action="delete"
+                    data-id="${escapeHtml(order.id)}">
+              Delete
+            </button>
+          </div>
         </td>
       </tr>
     `).join("");
 
     $("orders-empty").hidden = visible.length > 0;
+
+    if (orderBusy) {
+      $("orders-table").querySelectorAll("button").forEach((button) => {
+        button.disabled = true;
+      });
+    }
   }
 
   async function loadCatalogue() {
@@ -293,6 +322,7 @@
 
   function resetPreview() {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
+
     previewUrl = null;
     $("product-image-preview").hidden = true;
     $("product-image-preview").removeAttribute("src");
@@ -326,6 +356,7 @@
     $("login-section").hidden = false;
     $("sign-out").hidden = true;
     $("signed-in-email").textContent = "";
+
     $("products-table").textContent = "";
     $("categories-table").textContent = "";
     $("orders-table").textContent = "";
@@ -365,6 +396,7 @@
       }
 
       adminId = result.data.user.id;
+
       $("login-section").hidden = true;
       $("dashboard").hidden = false;
       $("sign-out").hidden = false;
@@ -445,7 +477,6 @@
   });
 
   $("product-dialog").addEventListener("close", resetPreview);
-
   $("product-search").addEventListener("input", renderProducts);
   $("product-category-filter").addEventListener("change", renderProducts);
   $("order-status-filter").addEventListener("change", renderOrders);
@@ -470,6 +501,7 @@
     $("product-name").value = product?.name || "";
     $("product-category").value =
       product?.category_id || categories[0].id;
+
     $("product-description").value = product?.description || "";
     $("product-size").value = product?.size || "";
     $("product-price").value = product?.price ?? "";
@@ -517,7 +549,9 @@
           .select("id")
       );
 
-      if (!rows.length) throw new Error("Product was not deleted.");
+      if (!rows.length) {
+        throw new Error("Product was not deleted.");
+      }
 
       await loadCatalogue();
       message("Product deleted. Existing order records are preserved.");
@@ -541,16 +575,24 @@
 
       if (!name) throw new Error("Enter a product name.");
 
-      if (price !== null && (!Number.isFinite(price) || price < 0)) {
+      if (
+        price !== null &&
+        (!Number.isFinite(price) || price < 0)
+      ) {
         throw new Error("Enter a valid price, or leave it blank.");
       }
 
-      if (!Number.isInteger(sort) || Math.abs(sort) > 2147483647) {
+      if (
+        !Number.isInteger(sort) ||
+        Math.abs(sort) > 2147483647
+      ) {
         throw new Error("Display order must be a valid whole number.");
       }
 
       if (!file && rawUrl && !imageUrl(rawUrl)) {
-        throw new Error("Use a site image path or a valid HTTPS image URL.");
+        throw new Error(
+          "Use a site image path or a valid HTTPS image URL."
+        );
       }
 
       const extensions = {
@@ -559,7 +601,10 @@
         "image/webp": "webp"
       };
 
-      if (file && (!extensions[file.type] || file.size > 5 * 1024 * 1024)) {
+      if (
+        file &&
+        (!extensions[file.type] || file.size > 5 * 1024 * 1024)
+      ) {
         throw new Error("Choose a JPEG, PNG or WebP image up to 5 MB.");
       }
 
@@ -600,7 +645,10 @@
           : db.from("egec_products").insert({ id, ...values });
 
         const rows = checked(await query.select("id"));
-        if (!rows.length) throw new Error("Product was not saved.");
+
+        if (!rows.length) {
+          throw new Error("Product was not saved.");
+        }
 
         saved = true;
         $("product-dialog").close();
@@ -633,6 +681,7 @@
     $("category-name").value = category?.name || "";
     $("category-sort").value = category?.sort_order ?? 0;
     $("category-active").checked = category?.active ?? true;
+
     $("category-dialog").showModal();
   }
 
@@ -672,7 +721,9 @@
           .select("id")
       );
 
-      if (!rows.length) throw new Error("Category was not deleted.");
+      if (!rows.length) {
+        throw new Error("Category was not deleted.");
+      }
 
       await loadCatalogue();
       message("Category deleted.");
@@ -691,7 +742,10 @@
 
       if (!name) throw new Error("Enter a category name.");
 
-      if (!Number.isInteger(sort) || Math.abs(sort) > 2147483647) {
+      if (
+        !Number.isInteger(sort) ||
+        Math.abs(sort) > 2147483647
+      ) {
         throw new Error("Display order must be a valid whole number.");
       }
 
@@ -706,7 +760,10 @@
         : db.from("egec_categories").insert(values);
 
       const rows = checked(await query.select("id"));
-      if (!rows.length) throw new Error("Category was not saved.");
+
+      if (!rows.length) {
+        throw new Error("Category was not saved.");
+      }
 
       $("category-dialog").close();
       await loadCatalogue();
@@ -722,12 +779,110 @@
     });
   });
 
+  function orderMessage(text, error = false) {
+    message(text, error);
+
+    const box = $("order-action-message");
+
+    if (box && $("order-dialog").open) {
+      box.textContent = text;
+      box.hidden = !text;
+      box.style.color = error ? "#8d3030" : "";
+    }
+  }
+
+  function lockOrderButtons(locked) {
+    orderBusy = locked;
+
+    $("orders-table").querySelectorAll("button").forEach((button) => {
+      button.disabled = locked;
+    });
+
+    $("order-dialog").querySelectorAll("button").forEach((button) => {
+      button.disabled = locked;
+    });
+
+    $("refresh-orders").disabled = locked;
+  }
+
+  async function deleteOrder(order, button) {
+    if (orderBusy || button.disabled) return;
+
+    const confirmed = confirm(
+      `Permanently delete ${order.order_reference} for ${order.customer_name}?\n\n` +
+      "This removes the order and its product lines. Its customer status link " +
+      "will stop working. This cannot be undone.\n\n" +
+      "Choose Cancel if you want to keep the order history."
+    );
+
+    if (!confirmed) return;
+
+    lockOrderButtons(true);
+    const version = authVersion;
+
+    try {
+      requireAdmin();
+      orderMessage(`Deleting ${order.order_reference}…`);
+
+      const rows = checked(
+        await db.from("egec_orders")
+          .delete()
+          .eq("id", order.id)
+          .select("id")
+      );
+
+      if (!rows.length) {
+        throw new Error(
+          "Deletion could not be confirmed. Refresh the orders list."
+        );
+      }
+
+      if (version !== authVersion || !adminId) return;
+
+      if (
+        $("order-dialog").open &&
+        $("order-id").value === order.id
+      ) {
+        $("order-dialog").close();
+        $("order-details").textContent = "";
+        $("order-form").reset();
+      }
+
+      orders = orders.filter((item) => item.id !== order.id);
+      renderOrders();
+
+      message(
+        `${order.order_reference} was permanently deleted.`
+      );
+
+      try {
+        await loadOrders();
+      } catch {
+        message(
+          `${order.order_reference} was deleted. Refresh to reload the remaining orders.`,
+          true
+        );
+      }
+    } catch (error) {
+      if (version === authVersion && adminId) {
+        orderMessage(errorText(error), true);
+      }
+    } finally {
+      lockOrderButtons(false);
+    }
+  }
+
   $("orders-table").addEventListener("click", (event) => {
     const button = event.target.closest("button[data-action]");
     if (!button) return;
 
     const order = orders.find((item) => item.id === button.dataset.id);
-    if (!order) return;
+    if (!order || orderBusy) return;
+
+    if (button.dataset.action === "delete") {
+      deleteOrder(order, button);
+      return;
+    }
 
     run(button, async () => {
       requireAdmin();
@@ -745,19 +900,33 @@
       $("order-dialog-title").textContent = order.order_reference;
 
       $("order-details").innerHTML = `
-        <p><strong>Customer:</strong>
-          ${escapeHtml(order.customer_name)}</p>
-        <p><strong>Email:</strong>
-          ${escapeHtml(order.customer_email)}</p>
-        <p><strong>Phone:</strong>
-          ${escapeHtml(order.customer_phone)}</p>
-        <p><strong>Fulfilment:</strong>
-          ${escapeHtml(order.fulfilment_method)}</p>
+        <p>
+          <strong>Customer:</strong>
+          ${escapeHtml(order.customer_name)}
+        </p>
+
+        <p>
+          <strong>Email:</strong>
+          ${escapeHtml(order.customer_email)}
+        </p>
+
+        <p>
+          <strong>Phone:</strong>
+          ${escapeHtml(order.customer_phone)}
+        </p>
+
+        <p>
+          <strong>Fulfilment:</strong>
+          ${escapeHtml(order.fulfilment_method)}
+        </p>
+
         ${order.delivery_address ? `
           <p class="order-notes"><strong>Delivery address:</strong>
 ${escapeHtml(order.delivery_address)}</p>
         ` : ""}
+
         <h3>Selected products</h3>
+
         <ul>
           ${items.map((item) => `
             <li>
@@ -769,44 +938,118 @@ ${escapeHtml(order.delivery_address)}</p>
             </li>
           `).join("")}
         </ul>
-        <p><strong>Estimated product total:</strong>
-          ${escapeHtml(money(order.estimated_total))}</p>
-        <p>Payment is arranged in person. Final pricing and fulfilment
-          are confirmed by EGEC.</p>
+
+        <p>
+          <strong>Estimated product total:</strong>
+          ${escapeHtml(money(order.estimated_total))}
+        </p>
+
+        <p>
+          Payment is arranged in person. Final pricing and fulfilment
+          are confirmed by EGEC.
+        </p>
+
         ${order.customer_notes ? `
           <p class="order-notes"><strong>Customer notes:</strong>
 ${escapeHtml(order.customer_notes)}</p>
         ` : ""}
       `;
 
+      const actions = document.createElement("div");
+      actions.className = "row-actions";
+
+      if (
+        /^[0-9a-f]{64}$/.test(order.customer_status_token || "")
+      ) {
+        const link = document.createElement("a");
+
+        const url = new URL(
+          "/order-status.html",
+          "https://ezegreenenergycompany.com"
+        );
+
+        url.hash = new URLSearchParams({
+          token: order.customer_status_token
+        }).toString();
+
+        link.href = url.href;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.textContent = "View customer status page ↗";
+
+        actions.append(link);
+      }
+
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "button-danger";
+      remove.textContent = "Delete order";
+
+      remove.addEventListener("click", () => {
+        deleteOrder(order, remove);
+      });
+
+      actions.append(remove);
+      $("order-details").append(actions);
+
+      const actionMessage = document.createElement("p");
+      actionMessage.id = "order-action-message";
+      actionMessage.setAttribute("role", "alert");
+      actionMessage.hidden = true;
+
+      $("order-details").append(actionMessage);
+
       $("order-id").value = order.id;
       $("order-status").value = order.status;
       $("order-owner-notes").value = order.owner_notes || "";
+
       $("order-dialog").showModal();
     });
   });
 
-  $("order-form").addEventListener("submit", (event) => {
+  $("order-form").addEventListener("submit", async (event) => {
     event.preventDefault();
+    if (orderBusy) return;
 
-    run($("save-order"), async () => {
+    const id = $("order-id").value;
+
+    const values = {
+      status: $("order-status").value,
+      owner_notes: $("order-owner-notes").value.trim()
+    };
+
+    const version = authVersion;
+    lockOrderButtons(true);
+
+    try {
       requireAdmin();
 
       const rows = checked(
         await db.from("egec_orders")
-          .update({
-            status: $("order-status").value,
-            owner_notes: $("order-owner-notes").value.trim()
-          })
-          .eq("id", $("order-id").value)
+          .update(values)
+          .eq("id", id)
           .select("id")
       );
 
-      if (!rows.length) throw new Error("Order was not updated.");
+      if (!rows.length) {
+        throw new Error("Order was not updated.");
+      }
+
+      if (version !== authVersion || !adminId) return;
 
       $("order-dialog").close();
       await loadOrders();
-      message("Order updated. This action does not send an email.");
-    });
+
+      message(
+        "Order updated. The customer status page shows the change. " +
+        "This action does not send an email."
+      );
+    } catch (error) {
+      if (version === authVersion && adminId) {
+        orderMessage(errorText(error), true);
+      }
+    } finally {
+      lockOrderButtons(false);
+    }
   });
 })();
