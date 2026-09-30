@@ -4,12 +4,15 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#123d2e">
-  <meta name="description" content="Eze Green Energy Company in Saint Lucia. Browse biofuel, home care and everyday essentials, then send an order request for in-person payment.">
+  <meta name="description" content="Eze Green Energy Company in Saint Lucia. Browse biofuel, home care and everyday essentials, then submit an order request for in-person payment.">
   <title>Eze Green Energy Company | Made in Saint Lucia</title>
+
   <link rel="icon" href="/brand/egec-logo.png?v=2" type="image/png">
   <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/orders.css?v=1">
+
   <script src="/config.js" defer></script>
-  <script src="/app.js" defer></script>
+  <script src="/app.js?v=3" defer></script>
 </head>
 
 <body id="top">
@@ -70,7 +73,7 @@
         <span class="photo-tag">EGEC · Everyday essentials</span>
         <div class="photo-note">
           <strong>Choose online. Arrange in person.</strong>
-          <small>Browse products and prepare your request.</small>
+          <small>Browse products and send your order request.</small>
         </div>
       </div>
     </section>
@@ -83,7 +86,7 @@
             <h2 id="shop-heading">Good things for<br>everyday living.</h2>
           </div>
           <p>
-            Explore the range, select quantities in units, and prepare
+            Explore the range, select quantities in units, and send
             an order request. Our team confirms pricing, availability
             and fulfilment.
           </p>
@@ -141,13 +144,18 @@
               <p>Browse by category and add the quantities you need.</p>
             </div>
           </article>
+
           <article>
             <span class="step-icon">02</span>
             <div>
-              <h3>Send a request</h3>
-              <p>Prepare an email for EGEC with your selected items.</p>
+              <h3>Send your request</h3>
+              <p>
+                Enter your contact details and submit your selection.
+                Receive an order reference and email confirmation.
+              </p>
             </div>
           </article>
+
           <article>
             <span class="step-icon">03</span>
             <div>
@@ -169,6 +177,7 @@
             Our story in Saint Lucia’s business community.
           </figcaption>
         </figure>
+
         <figure class="award">
           <img src="/about/energy-globe.jpeg"
                alt="2020 Energy Globe National Award for Saint Lucia"
@@ -221,11 +230,80 @@
         <h2 id="cart-heading">Your cart</h2>
         <p id="cart-intro">Your cart is currently empty.</p>
       </div>
+
       <button class="icon-close" id="cart-close" type="button"
               aria-label="Close cart">×</button>
     </div>
 
-    <div id="cart-lines" class="cart-lines"></div>
+    <div class="cart-scroll">
+      <div id="cart-lines" class="cart-lines"></div>
+
+      <div id="order-result" class="order-result"
+           role="status" tabindex="-1" hidden></div>
+
+      <form id="order-form" class="order-form" hidden>
+        <fieldset id="order-fields">
+          <legend>Your details</legend>
+          <p class="order-help">
+            We’ll use these details to confirm your request and arrange
+            collection or delivery.
+          </p>
+
+          <label for="customer-name">Full name</label>
+          <input id="customer-name" name="customer_name"
+                 type="text" autocomplete="name"
+                 maxlength="200" required>
+
+          <label for="customer-email">Email address</label>
+          <input id="customer-email" name="customer_email"
+                 type="email" autocomplete="email"
+                 maxlength="254" required>
+
+          <label for="customer-phone">Phone number</label>
+          <input id="customer-phone" name="customer_phone"
+                 type="tel" autocomplete="tel"
+                 minlength="5" maxlength="40" required>
+
+          <label for="fulfilment-method">Collection or delivery?</label>
+          <select id="fulfilment-method" name="fulfilment_method">
+            <option value="collection">Collection</option>
+            <option value="delivery">Request delivery</option>
+          </select>
+
+          <div id="delivery-fields" hidden>
+            <label for="delivery-address">Delivery address in Saint Lucia</label>
+            <textarea id="delivery-address" name="delivery_address"
+                      autocomplete="street-address"
+                      maxlength="1000" rows="3" disabled></textarea>
+            <p class="order-help">
+              Delivery availability and any charges are confirmed by EGEC.
+            </p>
+          </div>
+
+          <label for="customer-notes">Additional notes <span>(optional)</span></label>
+          <textarea id="customer-notes" name="customer_notes"
+                    maxlength="2000" rows="3"
+                    placeholder="Tell us anything we should know about your request."></textarea>
+
+          <div class="order-trap" aria-hidden="true">
+            <label for="order-website">Website</label>
+            <input id="order-website" name="website"
+                   type="text" tabindex="-1" autocomplete="off">
+          </div>
+
+          <label class="order-agreement">
+            <input id="order-agreement" type="checkbox" required>
+            <span>
+              I understand that this is an order request. EGEC will confirm
+              prices and availability, and payment will be arranged in person.
+            </span>
+          </label>
+        </fieldset>
+      </form>
+
+      <p id="order-message" class="order-message"
+         role="status" tabindex="-1" hidden></p>
+    </div>
 
     <div class="cart-bottom">
       <p>
@@ -235,13 +313,13 @@
       </p>
 
       <button id="order-button" class="button button-dark"
-              type="button" disabled>
-        Prepare order email <span aria-hidden="true">↗</span>
+              type="submit" form="order-form" disabled>
+        Send order request <span aria-hidden="true">↗</span>
       </button>
 
       <small>
-        Your email app will open. Send the prepared message to
-        contact EGEC. This website does not send an order automatically.
+        Your request will be saved and confirmation emails will be
+        submitted to you and EGEC. Keep the order reference shown afterwards.
       </small>
     </div>
   </aside>
