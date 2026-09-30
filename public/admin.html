@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#123d2e">
+  <meta name="robots" content="noindex, nofollow">
+  <title>EGEC | Administration</title>
+
+  <link rel="icon" href="/brand/egec-logo.png" type="image/png">
+  <link rel="stylesheet" href="/admin.css">
+
+  <script
+    src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+    defer
+  ></script>
+  <script src="/config.js" defer></script>
+  <script src="/admin.js" defer></script>
+</head>
+
+<body>
+  <header class="admin-header">
+    <a class="brand" href="/" aria-label="EGEC website">
+      <img
+        src="/brand/egec-logo.png"
+        alt="Eze Green Energy Company"
+        width="220"
+      >
+    </a>
+
+    <div class="header-actions">
+      <a href="/" target="_blank" rel="noopener">View website ↗</a>
+      <button id="sign-out" type="button" hidden>Sign out</button>
+    </div>
+  </header>
+
+  <main class="admin-wrap">
+    <div id="status-message" class="status-message"
+         role="status" aria-live="polite" hidden></div>
+
+    <section id="login-section" class="login-card">
+      <p class="eyebrow">EGEC ADMINISTRATION</p>
+      <h1>Welcome back.</h1>
+      <p>Sign in to manage your products, categories and order requests.</p>
+
+      <form id="login-form">
+        <label for="login-email">Email address</label>
+        <input
+          id="login-email"
+          name="email"
+          type="email"
+          autocomplete="username"
+          required
+        >
+
+        <label for="login-password">Password</label>
+        <input
+          id="login-password"
+          name="password"
+          type="password"
+          autocomplete="current-password"
+          required
+        >
+
+        <button id="login-button" class="button-primary" type="submit">
+          Sign in
+        </button>
+      </form>
+    </section>
+
+    <section id="dashboard" hidden>
+      <div class="dashboard-heading">
+        <div>
+          <p class="eyebrow">EZE GREEN ENERGY COMPANY</p>
+          <h1>Your business, organised.</h1>
+        </div>
+        <p id="signed-in-email"></p>
+      </div>
+
+      <nav class="admin-tabs" aria-label="Administration sections">
+        <button type="button" data-panel="products-panel"
+                aria-pressed="true">Products</button>
+        <button type="button" data-panel="categories-panel"
+                aria-pressed="false">Categories</button>
+        <button type="button" data-panel="orders-panel"
+                aria-pressed="false">Order requests</button>
+      </nav>
+
+      <section id="products-panel" class="admin-panel"
+               aria-labelledby="products-heading">
+        <div class="panel-heading">
+          <div>
+            <h2 id="products-heading">Products</h2>
+            <p>Manage product details, images and prices in EC dollars.</p>
+          </div>
+          <button id="new-product" class="button-primary" type="button">
+            Add product
+          </button>
+        </div>
+
+        <div class="filter-bar">
+          <label for="product-search">Search products</label>
+          <input id="product-search" type="search"
+                 placeholder="Search by product name">
+
+          <label for="product-category-filter">Category</label>
+          <select id="product-category-filter">
+            <option value="">All categories</option>
+          </select>
+        </div>
+
+        <div class="table-scroll">
+          <table>
+            <caption class="sr-only">EGEC products</caption>
+            <thead>
+              <tr>
+                <th scope="col">Product</th>
+                <th scope="col">Category</th>
+                <th scope="col">Price</th>
+                <th scope="col">Visibility</th>
+                <th scope="col">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="products-table"></tbody>
+          </table>
+        </div>
+        <p id="products-empty" hidden>No products found.</p>
+      </section>
+
+      <section id="categories-panel" class="admin-panel"
+               aria-labelledby="categories-heading" hidden>
+        <div class="panel-heading">
+          <div>
+            <h2 id="categories-heading">Categories</h2>
+            <p>Organise your range into categories customers can browse.</p>
+          </div>
+          <button id="new-category" class="button-primary" type="button">
+            Add category
+          </button>
+        </div>
+
+        <div class="table-scroll">
+          <table>
+            <caption class="sr-only">EGEC product categories</caption>
+            <thead>
+              <tr>
+                <th scope="col">Category</th>
+                <th scope="col">Display order</th>
+                <th scope="col">Visibility</th>
+                <th scope="col">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="categories-table"></tbody>
+          </table>
+        </div>
+        <p id="categories-empty" hidden>No categories added yet.</p>
+      </section>
+
+      <section id="orders-panel" class="admin-panel"
+               aria-labelledby="orders-heading" hidden>
+        <div class="panel-heading">
+          <div>
+            <h2 id="orders-heading">Order requests</h2>
+            <p>Review customer requests and update their progress.</p>
+          </div>
+          <button id="refresh-orders" type="button">Refresh orders</button>
+        </div>
+
+        <div class="filter-bar">
+          <label for="order-status-filter">Order status</label>
+          <select id="order-status-filter">
+            <option value="">All statuses</option>
+            <option value="new">New</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="ready">Ready</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </div>
+
+        <div class="table-scroll">
+          <table>
+            <caption class="sr-only">EGEC order requests</caption>
+            <thead>
+              <tr>
+                <th scope="col">Reference</th>
+                <th scope="col">Customer</th>
+                <th scope="col">Date</th>
+                <th scope="col">Fulfilment</th>
+                <th scope="col">Status</th>
+                <th scope="col">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="orders-table"></tbody>
+          </table>
+        </div>
+        <p id="orders-empty" hidden>No order requests found.</p>
+      </section>
+    </section>
+  </main>
+
+  <dialog id="product-dialog" aria-labelledby="product-dialog-title">
+    <form id="product-form">
+      <div class="dialog-heading">
+        <h2 id="product-dialog-title">Add product</h2>
+        <button type="button" data-close="product-dialog"
+                aria-label="Close product editor">×</button>
+      </div>
+
+      <input id="product-id" type="hidden">
+
+      <label for="product-name">Product name</label>
+      <input id="product-name" type="text" maxlength="200" required>
+
+      <label for="product-category">Category</label>
+      <select id="product-category" required></select>
+
+      <label for="product-description">Description</label>
+      <textarea id="product-description" rows="4"></textarea>
+
+      <label for="product-size">Size or pack information</label>
+      <input id="product-size" type="text"
+             placeholder="For example: 500 ml or 5 L">
+
+      <label for="product-price">Price per unit — EC$ (XCD)</label>
+      <input id="product-price" type="number"
+             min="0" max="9999999999.99" step="0.01">
+      <p class="field-help">
+        Leave blank if the price needs to be confirmed by EGEC.
+      </p>
+
+      <label for="product-image-url">Current image path or URL</label>
+      <input id="product-image-url" type="text"
+             placeholder="/products/dishwash.png">
+
+      <label for="product-image-file">Upload a new product photo</label>
+      <input id="product-image-file" type="file"
+             accept="image/jpeg,image/png,image/webp">
+      <p class="field-help">JPEG, PNG or WebP. Maximum 5 MB.</p>
+
+      <img id="product-image-preview" class="image-preview"
+           alt="Product image preview" hidden>
+
+      <label for="product-sort">Display order</label>
+      <input id="product-sort" type="number" step="1" value="0" required>
+      <p class="field-help">Lower numbers appear first.</p>
+
+      <label class="checkbox-label">
+        <input id="product-active" type="checkbox" checked>
+        Show this product on the website
+      </label>
+
+      <div class="dialog-actions">
+        <button type="button" data-close="product-dialog">Cancel</button>
+        <button id="save-product" class="button-primary" type="submit">
+          Save product
+        </button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="category-dialog" aria-labelledby="category-dialog-title">
+    <form id="category-form">
+      <div class="dialog-heading">
+        <h2 id="category-dialog-title">Add category</h2>
+        <button type="button" data-close="category-dialog"
+                aria-label="Close category editor">×</button>
+      </div>
+
+      <input id="category-id" type="hidden">
+
+      <label for="category-name">Category name</label>
+      <input id="category-name" type="text" maxlength="100" required>
+
+      <label for="category-sort">Display order</label>
+      <input id="category-sort" type="number" step="1" value="0" required>
+
+      <label class="checkbox-label">
+        <input id="category-active" type="checkbox" checked>
+        Show this category on the website
+      </label>
+
+      <p class="field-help">
+        Hiding a category also hides its products from the shop.
+      </p>
+
+      <div class="dialog-actions">
+        <button type="button" data-close="category-dialog">Cancel</button>
+        <button id="save-category" class="button-primary" type="submit">
+          Save category
+        </button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="order-dialog" aria-labelledby="order-dialog-title">
+    <div class="dialog-heading">
+      <h2 id="order-dialog-title">Order request</h2>
+      <button type="button" data-close="order-dialog"
+              aria-label="Close order details">×</button>
+    </div>
+
+    <div id="order-details"></div>
+
+    <form id="order-form">
+      <input id="order-id" type="hidden">
+
+      <label for="order-status">Status</label>
+      <select id="order-status" required>
+        <option value="new">New</option>
+        <option value="confirmed">Confirmed</option>
+        <option value="ready">Ready</option>
+        <option value="completed">Completed</option>
+        <option value="cancelled">Cancelled</option>
+      </select>
+
+      <label for="order-owner-notes">Internal notes</label>
+      <textarea id="order-owner-notes" rows="4"></textarea>
+      <p class="field-help">These notes are for EGEC administrators.</p>
+
+      <div class="dialog-actions">
+        <button type="button" data-close="order-dialog">Close</button>
+        <button id="save-order" class="button-primary" type="submit">
+          Save changes
+        </button>
+      </div>
+    </form>
+  </dialog>
+
+  <footer class="admin-footer">
+    Eze Green Energy Company · Administration
+  </footer>
+</body>
+</html>
