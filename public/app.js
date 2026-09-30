@@ -116,6 +116,38 @@
     }
   }
 
+  function safeStatusUrl(value) {
+    try {
+      if (typeof value !== "string") return "";
+
+      const url = new URL(value);
+      const allowedHosts = new Set([
+        "ezegreenenergycompany.com",
+        "www.ezegreenenergycompany.com"
+      ]);
+
+      const token = new URLSearchParams(
+        url.hash.replace(/^#/, "")
+      ).get("token");
+
+      if (
+        url.protocol !== "https:" ||
+        !allowedHosts.has(url.host) ||
+        url.username ||
+        url.password ||
+        url.pathname !== "/order-status.html" ||
+        url.search ||
+        !/^[0-9a-f]{64}$/.test(token || "")
+      ) {
+        return "";
+      }
+
+      return url.href;
+    } catch {
+      return "";
+    }
+  }
+
   async function readTable(table, columns) {
     const rows = [];
     const pageSize = 500;
@@ -123,6 +155,7 @@
 
     for (let offset = 0; ; offset += pageSize) {
       const url = new URL(`${root}/rest/v1/${table}`);
+
       url.searchParams.set("select", columns);
       url.searchParams.set("active", "eq.true");
       url.searchParams.set("order", "sort_order.asc,id.asc");
@@ -131,7 +164,6 @@
 
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), 15000);
-
       let page;
 
       try {
@@ -159,9 +191,7 @@
 
       rows.push(...page);
 
-      if (page.length < pageSize) {
-        return rows;
-      }
+      if (page.length < pageSize) return rows;
     }
   }
 
@@ -334,10 +364,7 @@
       }
 
       const results = await Promise.allSettled([
-        readTable(
-          "egec_categories",
-          "id,name,sort_order,active"
-        ),
+        readTable("egec_categories", "id,name,sort_order,active"),
         readTable(
           "egec_products",
           "id,category_id,name,description,size,image_url,price,sort_order,active"
@@ -529,13 +556,10 @@
 
   async function submitOrder(event) {
     event.preventDefault();
-
     if (sending) return;
 
     if (!config?.supabaseUrl || !config?.supabasePublishableKey) {
-      showMessage(
-        "Ordering is unavailable. Please contact EGEC."
-      );
+      showMessage("Ordering is unavailable. Please contact EGEC.");
       return;
     }
 
@@ -559,10 +583,7 @@
     renderCart();
 
     const controller = new AbortController();
-    const timer = setTimeout(
-      () => controller.abort(),
-      60000
-    );
+    const timer = setTimeout(() => controller.abort(), 60000);
 
     try {
       const root = config.supabaseUrl.replace(/\/+$/, "");
@@ -585,17 +606,28 @@
       try {
         result = await response.json();
       } catch {
-        throw new Error(
-          "The response could not be confirmed."
-        );
+        throw new Error("The response could not be confirmed.");
       }
 
       if (!response.ok || result.success !== true) {
-        /*
-         * Validation and rate-limit responses mean this request
-         * was rejected before a new order was saved.
-         * For other failures, retain the same submission key.
-         */
+        if (response.status === 410) {
+          pending = null;
+          persistPending();
+
+          cart = Object.create(null);
+          persistCart();
+
+          $("order-form").reset();
+          updateDelivery();
+
+          showMessage(
+            "This order request was deleted by EGEC and has not been " +
+            "recreated. Contact our team if you need assistance."
+          );
+
+          return;
+        }
+
         if (
           response.status === 400 ||
           response.status === 429
@@ -611,23 +643,21 @@
           return;
         }
 
-        throw new Error(
-          "The request could not be confirmed."
-        );
+        throw new Error("The request could not be confirmed.");
       }
 
       if (
         typeof result.reference !== "string" ||
         !/^EGEC-[0-9]+$/.test(result.reference)
       ) {
-        throw new Error(
-          "The order reference could not be confirmed."
-        );
+        throw new Error("The order reference could not be confirmed.");
       }
 
       const notificationsAccepted =
         result.notifications?.customer === "accepted" &&
         result.notifications?.owner === "accepted";
+
+      const statusUrl = safeStatusUrl(result.status_url);
 
       const receiptItems = Array.isArray(result.items)
         ? result.items
@@ -708,6 +738,27 @@
           </p>
         `}
 
+        ${statusUrl ? `
+          <p>
+            <a class="button button-dark"
+               href="${escapeHtml(statusUrl)}"
+               target="_blank"
+               rel="noopener noreferrer">
+              View order status ↗
+            </a>
+          </p>
+
+          <p class="receipt-note">
+            Keep this private link to check the latest order status.
+            It is also included in your confirmation email.
+          </p>
+        ` : `
+          <p class="receipt-note">
+            Check your confirmation email for your private status link,
+            or contact EGEC and quote your order reference.
+          </p>
+        `}
+
         <p>
           ${notificationsAccepted
             ? `Confirmation emails have been submitted for delivery.
@@ -734,21 +785,11 @@
 
       $("order-result").hidden = false;
 
-      $("continue-shopping").addEventListener(
-        "click",
-        closeCart
-      );
+      $("continue-shopping").addEventListener("click", closeCart);
 
-      announce(
-        `Order request ${result.reference} saved.`
-      );
-
+      announce(`Order request ${result.reference} saved.`);
       $("order-result").focus();
     } catch {
-      /*
-       * The server may have saved the request even if its
-       * response did not reach this browser.
-       */
       showMessage(
         "We couldn’t confirm the response. Your request may already be saved. " +
         "Click “Retry the same request” to check it without creating another " +
@@ -776,7 +817,6 @@
 
   $("filters").addEventListener("click", (event) => {
     const button = event.target.closest("[data-category]");
-
     if (!button || !loaded) return;
 
     activeCategory = button.dataset.category;
@@ -791,7 +831,6 @@
     }
 
     const button = event.target.closest("[data-add]");
-
     if (!button || !loaded) return;
 
     if (sending || pending) {
@@ -806,7 +845,6 @@
 
     const id = button.dataset.add;
     const product = byId.get(id);
-
     if (!product) return;
 
     const input = button
@@ -830,20 +868,10 @@
       return;
     }
 
-    if (
-      !cart[id] &&
-      Object.keys(cart).length >= 50
-    ) {
-      announce(
-        "The cart can contain up to 50 different products."
-      );
-
+    if (!cart[id] && Object.keys(cart).length >= 50) {
+      announce("The cart can contain up to 50 different products.");
       openCart();
-
-      showMessage(
-        "The cart can contain up to 50 different products."
-      );
-
+      showMessage("The cart can contain up to 50 different products.");
       return;
     }
 
@@ -855,27 +883,16 @@
     persistCart();
     renderCart();
 
-    announce(
-      `${quantity} units of ${product.name} added to cart.`
-    );
-
+    announce(`${quantity} units of ${product.name} added to cart.`);
     openCart();
   });
 
   $("cart-lines").addEventListener("click", (event) => {
     const button = event.target.closest("[data-adjust]");
 
-    if (
-      !button ||
-      !loaded ||
-      sending ||
-      pending
-    ) {
-      return;
-    }
+    if (!button || !loaded || sending || pending) return;
 
     const id = button.dataset.adjust;
-
     if (!byId.has(id)) return;
 
     const next =
@@ -903,35 +920,14 @@
     (replacement || $("cart-close")).focus();
   });
 
-  $("cart-toggle").addEventListener(
-    "click",
-    openCart
-  );
-
-  $("cart-close").addEventListener(
-    "click",
-    closeCart
-  );
-
-  $("cart-backdrop").addEventListener(
-    "click",
-    closeCart
-  );
-
-  $("fulfilment-method").addEventListener(
-    "change",
-    updateDelivery
-  );
-
-  $("order-form").addEventListener(
-    "submit",
-    submitOrder
-  );
+  $("cart-toggle").addEventListener("click", openCart);
+  $("cart-close").addEventListener("click", closeCart);
+  $("cart-backdrop").addEventListener("click", closeCart);
+  $("fulfilment-method").addEventListener("change", updateDelivery);
+  $("order-form").addEventListener("submit", submitOrder);
 
   document.addEventListener("keydown", (event) => {
-    if (!$("cart-panel").classList.contains("open")) {
-      return;
-    }
+    if (!$("cart-panel").classList.contains("open")) return;
 
     if (event.key === "Escape") {
       closeCart();
@@ -972,8 +968,7 @@
     }
   });
 
-  $("year").textContent =
-    String(new Date().getFullYear());
+  $("year").textContent = String(new Date().getFullYear());
 
   restore();
   fillPendingForm();
