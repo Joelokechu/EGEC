@@ -1,0 +1,162 @@
+.cart-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.cart-scroll .cart-lines {
+  overflow: visible;
+  flex: initial;
+}
+
+.order-form {
+  padding: 0 22px 24px;
+}
+
+.order-form[hidden],
+.order-result[hidden],
+.order-message[hidden],
+#delivery-fields[hidden] {
+  display: none;
+}
+
+.order-form fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 20px 0 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+}
+
+.order-form legend {
+  padding: 0 12px 0 0;
+  color: var(--pine);
+  font: 25px Georgia, "Times New Roman", serif;
+}
+
+.order-form label:not(.order-agreement) {
+  display: block;
+  margin: 18px 0 7px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.order-form label span {
+  font-weight: 400;
+}
+
+.order-form input:not([type="checkbox"]),
+.order-form select,
+.order-form textarea {
+  display: block;
+  width: 100%;
+  padding: 12px 13px;
+  border: 1px solid #bdccc0;
+  border-radius: 10px;
+  background: white;
+  color: var(--ink);
+  font: inherit;
+}
+
+.order-form textarea {
+  resize: vertical;
+  min-height: 90px;
+}
+
+.order-form :disabled {
+  opacity: .7;
+}
+
+.order-help {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.order-agreement {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 22px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.order-agreement input {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin: 3px 0 0;
+  accent-color: var(--pine);
+}
+
+.order-trap {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.order-message,
+.order-result {
+  margin: 0 22px 24px;
+  padding: 18px;
+  border: 1px solid #dfc688;
+  border-radius: 14px;
+  background: #fff8e7;
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.order-result {
+  border-color: #bdd6c4;
+  background: #edf6ee;
+}
+
+.order-result h3 {
+  margin: 0 0 10px;
+  font: 25px Georgia, "Times New Roman", serif;
+}
+
+.order-result p {
+  margin: 10px 0;
+}
+
+.order-reference {
+  display: block;
+  font-size: 22px;
+  letter-spacing: .04em;
+  color: var(--pine);
+}
+
+.order-result button {
+  margin-top: 12px;
+}
+
+.cart-panel {
+  max-height: 100dvh;
+}
+
+.cart-head,
+.cart-bottom {
+  flex-shrink: 0;
+}
+
+@media (max-height: 650px) {
+  .cart-head,
+  .cart-bottom {
+    padding: 14px 20px;
+  }
+
+  .cart-head .overline {
+    margin-bottom: 8px;
+  }
+
+  .cart-bottom small {
+    font-size: 11px;
+  }
+}
