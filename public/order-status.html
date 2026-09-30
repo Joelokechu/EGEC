@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#123d2e">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="no-referrer">
+
+  <title>Your Order Request | Eze Green Energy Company</title>
+
+  <link rel="icon" href="/brand/egec-logo.png?v=2" type="image/png">
+  <link rel="stylesheet" href="/order-status.css">
+
+  <script src="/config.js" defer></script>
+  <script src="/order-status.js" defer></script>
+</head>
+
+<body>
+  <div class="announcement">
+    Made in Saint Lucia · Payment arranged in person
+  </div>
+
+  <header class="status-header">
+    <a href="/" aria-label="Eze Green Energy Company home">
+      <img src="/brand/egec-logo.png"
+           alt="Eze Green Energy Company">
+    </a>
+
+    <a class="shop-link" href="/#shop">Back to shop ↗</a>
+  </header>
+
+  <main class="status-main">
+    <div class="page-heading">
+      <p class="overline">YOUR EGEC REQUEST</p>
+      <h1>Follow your order.</h1>
+      <p>
+        Check your selection and the latest status of your order request.
+      </p>
+    </div>
+
+    <div id="status-message" class="message"
+         role="status" tabindex="-1">
+      Loading your order…
+    </div>
+
+    <section id="order-card" class="order-card"
+             aria-labelledby="order-reference" hidden>
+      <div class="order-top">
+        <div>
+          <p class="overline">ORDER REFERENCE</p>
+          <h2 id="order-reference"></h2>
+          <p id="order-date" class="muted"></p>
+        </div>
+
+        <span id="status-badge" class="status-badge"></span>
+      </div>
+
+      <div class="status-explanation">
+        <h3 id="status-title"></h3>
+        <p id="status-description"></p>
+      </div>
+
+      <div class="order-facts">
+        <div>
+          <span>Requested fulfilment</span>
+          <strong id="order-fulfilment"></strong>
+        </div>
+
+        <div>
+          <span>Last order update</span>
+          <strong id="order-updated"></strong>
+        </div>
+      </div>
+
+      <div class="products-section">
+        <h3>Your requested products</h3>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Product</th>
+                <th scope="col">Units</th>
+                <th scope="col">Unit price</th>
+                <th scope="col">Estimate</th>
+              </tr>
+            </thead>
+            <tbody id="order-items"></tbody>
+          </table>
+        </div>
+
+        <p class="order-total" id="order-total"></p>
+
+        <p class="muted price-note">
+          Prices are in EC dollars (XCD). Product availability, final
+          pricing and any delivery charges are confirmed by EGEC.
+        </p>
+      </div>
+
+      <div class="payment-note">
+        <strong>Payment in person</strong>
+        <p>
+          This page confirms an order request. It is not a payment
+          receipt, and no online payment has been taken.
+        </p>
+      </div>
+
+      <div class="order-actions">
+        <button id="refresh-order" type="button">
+          Refresh status
+        </button>
+
+        <button id="print-order" class="secondary" type="button">
+          Print request
+        </button>
+      </div>
+
+      <p id="last-checked" class="muted checked"></p>
+    </section>
+
+    <div class="contact-card">
+      <h3>Need help with your order?</h3>
+      <p>Contact EGEC and quote your order reference.</p>
+
+      <a href="mailto:ezegreenenergy@gmail.com">
+        ezegreenenergy@gmail.com
+      </a>
+
+      <a href="tel:+17582845019">+1 758 284 5019</a>
+    </div>
+  </main>
+
+  <footer>
+    © <span id="year"></span> Eze Green Energy Company
+    <span>Odsan Industrial Estate, Castries, Saint Lucia.</span>
+  </footer>
+</body>
+</html>
