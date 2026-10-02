@@ -1390,3 +1390,28 @@ button:active,
     padding: 14px;
   }
 }
+.copyright {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 24px;
+}
+
+.creator-credit a {
+  color: var(--gold);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.creator-credit a:hover {
+  color: white;
+}
+
+@media (max-width: 700px) {
+  .copyright {
+    flex-direction: column;
+    text-align: center;
+  }
+}
