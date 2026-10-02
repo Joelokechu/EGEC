@@ -1453,3 +1453,15 @@ button:active,
     text-align: center;
   }
 }
+.copyright {
+  align-items: center;
+  gap: 12px;
+  padding-top: 22px;
+  padding-bottom: 22px;
+  text-align: center;
+}
+
+.copyright > span:first-child {
+  width: 100%;
+  text-align: center;
+}
