@@ -1415,3 +1415,41 @@ button:active,
     text-align: center;
   }
 }
+/* Centred creator credit */
+.copyright {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 28px;
+}
+
+.copyright > span:first-child {
+  text-align: left;
+}
+
+.creator-credit {
+  display: block;
+  width: 100%;
+  text-align: center;
+  color: #b9d6c9;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.creator-credit a {
+  color: inherit;
+  font-weight: inherit;
+  text-decoration: none;
+  transition: color .2s ease;
+}
+
+.creator-credit a:hover,
+.creator-credit a:focus-visible {
+  color: white;
+}
+
+@media (max-width: 700px) {
+  .copyright > span:first-child {
+    text-align: center;
+  }
+}
